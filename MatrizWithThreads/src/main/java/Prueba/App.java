@@ -12,9 +12,6 @@ import java.util.concurrent.*;
 
 public class App {
 
-    public static int tamano = generarSizeAleatorio(1000, 10_000);
-    public static int [][] matriz = generarMatrizAleatoria(tamano ,100, 500_001);
-
     public static void main(String[] args) throws RunnerException {
 
         Options options = new OptionsBuilder()
@@ -27,7 +24,7 @@ public class App {
 
     public static int generarSizeAleatorio(int min, int max) {
         Random random = new Random();
-        return random.nextInt(max - min + 1) + min;
+        return random.nextInt(min, max + 1) ;
     }
 
     public static int[][] generarMatrizAleatoria(int size, int rangoMin, int rangoMax) {
@@ -35,25 +32,25 @@ public class App {
         Random random = new Random();
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                matriz[i][j] = random.nextInt(rangoMax - rangoMin + 1) + rangoMin;
+                matriz[i][j] = random.nextInt(rangoMin, rangoMax + 1);
             }
         }
         return matriz;
     }
 
-    public static int calcularSumaHilos(int[][] matriz) throws ExecutionException, InterruptedException {
+    public static long calcularSumaHilos(int[][] matriz) throws ExecutionException, InterruptedException {
         ExecutorService executor = Executors.newFixedThreadPool(matriz[0].length);
-        List<Future<Integer>> resultadosParciales = new ArrayList<>();
+        List<Future<Long>> resultadosParciales = new ArrayList<>();
 
         for (int j = 0; j < matriz[0].length; j++) {
             int columna = j;
-            Callable<Integer> tarea = new SumColumnaCallable(matriz, columna);
-            Future<Integer> resultadoParcial = executor.submit(tarea);
+            Callable<Long> tarea = new SumColumnaCallable(matriz, columna);
+            Future<Long> resultadoParcial = executor.submit(tarea);
             resultadosParciales.add(resultadoParcial);
         }
 
-        int sumaTotal = 0;
-        for (Future<Integer> resultadoParcial : resultadosParciales) {
+        long sumaTotal = 0;
+        for (Future<Long> resultadoParcial : resultadosParciales) {
             sumaTotal += resultadoParcial.get();
         }
 
@@ -62,10 +59,10 @@ public class App {
         return sumaTotal;
     }
 
-    public static int calcularSumaSecuencial(int[][] matriz) {
-        int sumaTotal = 0;
+    public static long calcularSumaSecuencial(int[][] matriz) {
+        long sumaTotal = 0;
         for (int j = 0; j < matriz[0].length; j++) {
-            int sumaColumna = 0;
+            long sumaColumna = 0;
             for (int i = 0; i < matriz.length; i++) {
                 sumaColumna += matriz[i][j];
             }
