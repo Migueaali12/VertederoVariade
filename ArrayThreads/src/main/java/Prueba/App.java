@@ -5,7 +5,9 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
 
@@ -35,13 +37,11 @@ public class App {
         return array;
     }
 
-
     public static Long parallelSum(int[] array) throws InterruptedException, ExecutionException {
-
         int cores = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(cores);
 
-        long[] partialResults = new long[cores];
+        List<Future<Long>> futures = new ArrayList<>();
         int startIndex = 0;
         int endIndex;
 
@@ -56,18 +56,19 @@ public class App {
 
             Callable<Long> task = new SumTask(subArray);
             Future<Long> future = executor.submit(task);
-            partialResults[i] = future.get();
+            futures.add(future);
         }
 
         executor.shutdown();
 
         long totalSum = 0;
-        for (long result : partialResults) {
-            totalSum += result;
+        for (Future<Long> future : futures) {
+            totalSum += future.get();
         }
 
         return totalSum;
     }
+
 
     public static Long sequentialSum(int[] array) {
         long sum = 0;
